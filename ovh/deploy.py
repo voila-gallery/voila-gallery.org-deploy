@@ -88,15 +88,9 @@ def main():
 
     galleries = list_servers(cloud)
 
-    # setup a new voila-gallery instance
     server = create_server(cloud, args.tag)
-
-    # wait for the new server to be ready
     poll_server(cloud, server.id)
-
     # FIXME: add to an existing floating ip
-
-    # Shutdown old servers
     stop_servers(cloud, galleries)
 
 
