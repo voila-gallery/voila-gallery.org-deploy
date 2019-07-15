@@ -62,7 +62,7 @@ def poll_server_ready(cloud, server_id):
     requests.get(url, timeout=10, verify=False)
 
 
-def create_server(cloud, tag):
+def create_server(cloud, tag, https):
     with open(USER_DATA_FILE) as f:
         user_data = f.read()
 
@@ -70,7 +70,10 @@ def create_server(cloud, tag):
     name = f"{GALLERY_PREFIX}{tag}-{instance_suffix}"
     logger.info("Create server %s...", name)
     server = cloud.create_server(
-        image=IMAGE, flavor=FLAVOR, userdata=user_data.format(ref=tag), name=name
+        image=IMAGE,
+        flavor=FLAVOR,
+        userdata=user_data.format(ref=tag, https=https),
+        name=name,
     )
     logger.info("Server created: %s", server.id)
     return server
@@ -98,6 +101,9 @@ def main():
         help="Suffix to add to the instance name (git commit hash)",
         required=True,
     )
+    argparser.add_argument(
+        "--https", action="store_true", help="Enable HTTPS with Let's Encrypt"
+    )
     args = argparser.parse_args()
 
     setup_logger()
@@ -107,7 +113,7 @@ def main():
 
     galleries = list_servers(cloud)
 
-    server = create_server(cloud, args.tag)
+    server = create_server(cloud, args.tag, args.https)
     poll_server_active(cloud, server.id)
     poll_server_ready(cloud, server.id)
     # FIXME: add to an existing floating ip
